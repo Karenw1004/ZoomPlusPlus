@@ -11,15 +11,15 @@
     - `cd ../../`
 
 ## Run project
-- Linux 
-    - Uncomment line 24
-    `driver=Chrome("./chromedriver.exe",options=options)`
-    - Comment line 26
-    `driver=Chrome(ChromeDriverManager().install(),options=options)`
-- Windows
-    - Uncomment line 26 
-    `driver=Chrome(ChromeDriverManager().install(),options=options)`
-    - Comment line 24
-    `driver=Chrome("./chromedriver.exe",options=options)`
-    
+- Go to host.py
+    - Linux 
+        - Uncomment line 24
+        `driver=Chrome("./chromedriver.exe",options=options)`
+        - Comment line 26
+        `driver=Chrome(ChromeDriverManager().install(),options=options)`
+    - Windows
+        - Uncomment line 26 
+        `driver=Chrome(ChromeDriverManager().install(),options=options)`
+        - Comment line 24
+        `driver=Chrome("./chromedriver.exe",options=options)`
 `python app.py`
