@@ -18,10 +18,12 @@ def init_driver(headless):
 	options.add_experimental_option('useAutomationExtension', False)
 	options.add_argument("--disable-blink-features=AutomationControlled")
 	options.add_argument("--use-fake-ui-for-media-stream")
-	options.add_argument(
-	f'--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36')
+	options.add_argument(f'--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36')
 	
-	driver=Chrome(ChromeDriverManager().install(),options=options)
+	# Linux
+	driver=Chrome("./chromedriver.exe",options=options)
+	# Windows 
+	# driver=Chrome(ChromeDriverManager().install(),options=options)
 	return driver
 
 def main():
