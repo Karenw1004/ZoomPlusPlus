@@ -14,7 +14,7 @@ def wait_page_to_load(driver):
 	while (not is_page_loaded(driver)):
 		sleep(2)
 
-def load_cookies():
+def load_cookies(driver):
 		cookies = pickle.load(open("cookies.pkl", "rb"))
 		for cookie in cookies:
 			if 'expiry' in cookie:
@@ -87,7 +87,7 @@ def join_meeting(driver):
 
 	try:
 		driver.get("https://zoom.us/account")
-		load_cookies()
+		load_cookies(driver)
 		wait_page_to_load(driver)
 
 		if( not is_logged_in(driver)):
@@ -109,7 +109,7 @@ def join_meeting(driver):
 		# Input zoom meeting pwd
 		pwd_input_box = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("inputpasscode"))
 		pwd_join_button = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("joinBtn"))
-		pwd_input_box[0].send_keys(zoom_meeting_pwd)
+		pwd_input_box[0].send_keys(meeting_pwd)
 		pwd_join_button[0].click()
 
 	except KeyboardInterrupt:
