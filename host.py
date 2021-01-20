@@ -13,6 +13,8 @@ class ZoomBackend(ZoomBottomMenu):
 	def init_driver(self, headless):
 		options = Options()
 		options.headless = headless
+		options.add_extension("./extension/Captcha.crx")
+		options.add_extension("./extension/CORSon.crx")
 		# List of options to avoid reCaptcha
 		options.add_argument("start-maximized")
 		options.add_argument('--profile-directory=profile')
