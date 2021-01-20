@@ -36,6 +36,8 @@ class ZoomBackend(ZoomBottomMenu):
 	def start(self):
 		print("\nZoomPlusPlus Backend (Host)\n")
 		join_meeting(self.driver)
+		super().get_participants_list()
+		super().call_next_person("raise_hands")
 		print("Done")
 
 if __name__ == '__main__':
