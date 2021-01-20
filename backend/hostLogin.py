@@ -78,12 +78,16 @@ def login(driver):
 		exit()
 
 # Join_meeting includes login, inserting name and password
-def join_meeting(driver):
-	meeting_id = input("Input meeting id here and press <enter> : ")
-	meeting_pwd = input("Input meeting password here and press <enter> : ")
-	meeting_url = "https://zoom.us/wc/join/"+meeting_id
+def join_meeting(driver,room_link, meeting_id, meeting_pwd):
+	if room_link:
+		link_str = ''.join([i for i in room_link if i.isdigit()])
+		zoom_meeting_id, zoom_meeting_pwd = link_str[0:11], link_str[11:]
+	else:
+		zoom_meeting_id = meeting_id
+		zoom_meeting_pwd = meeting_pwd
+	zoom_meeting_url = "https://zoom.us/wc/join/" + zoom_meeting_id
 	
-	url = f"https://zoom.us/j/{meeting_id}?pwd={meeting_pwd}"
+	url = f"https://zoom.us/j/{zoom_meeting_id}?pwd={zoom_meeting_pwd}"
 
 	try:
 		driver.get("https://zoom.us/account")
@@ -93,8 +97,9 @@ def join_meeting(driver):
 		if( not is_logged_in(driver)):
 			login(driver)
 
-		driver.get(meeting_url)
+		driver.get(zoom_meeting_url)
 		wait_page_to_load(driver)
+		# TODO: MEETING HAS NOT STARTED ERROR 
 		
 		# Input the name to zoom meeting 
 		name_input_box = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("inputname"))
