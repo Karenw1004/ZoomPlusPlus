@@ -33,12 +33,14 @@ class ZoomBackend(ZoomBottomMenu):
 		# driver=Chrome(ChromeDriverManager().install(),options=options)
 		return driver
 	
-	def start(self):
+	def start_driver(self,url, meeting_id, meeting_pwd):
 		print("\nZoomPlusPlus Backend (Host)\n")
-		join_meeting(self.driver)
+		join_meeting(self.driver, url, meeting_id, meeting_pwd)
 		super().get_participants_list()
 		super().call_next_person("raise_hands")
 		print("Done")
+		return self.driver
+	
 
 if __name__ == '__main__':
 	backend = ZoomBackend(False)
