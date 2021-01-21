@@ -49,7 +49,7 @@ class ZoomBottomMenu:
     def get_host_name(self):
         if not self.participants_open:
             self.participants_open = self.click_bottom_menu("participants", self.participants_open)
-        x_path = "//span[@class='participants-item__name-label' and normalize-space()='(Host)' ]/parent::span/span[@class='participants-item__display-name']"
+        x_path = "//span[@class='participants-item__name-label' and normalize-space()='Host' ]/parent::span/span[@class='participants-item__display-name']"
         host_element = self.driver.find_element_by_xpath(x_path)
         host_name = host_element.get_attribute("innerHTML")
         # Get the sibling element above host_element
