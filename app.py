@@ -9,7 +9,7 @@ import threading
 class loginWindow(QDialog):
     def __init__(self):
         super().__init__()
-        self.login = uic.loadUi("./UI/login_window.ui")
+        self.login = uic.loadUi("./UI/xml/login_window.ui")
         self.meetingId = None
         self.password = None
         self.url = None
@@ -37,7 +37,7 @@ class loginWindow(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.main = uic.loadUi("./UI/main_window.ui")
+        self.main = uic.loadUi("./UI/xml/main_window.ui")
         # self.main.pushButton_test.clicked.connect(lambda: print("testing"))
 
 
