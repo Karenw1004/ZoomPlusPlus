@@ -12,7 +12,7 @@ def is_page_loaded(driver):
 def wait_page_to_load(driver):
 	sleep(1)
 	while (not is_page_loaded(driver)):
-		sleep(2)
+		sleep(1)
 
 def load_cookies(driver):
 		cookies = pickle.load(open("cookies.pkl", "rb"))
@@ -42,7 +42,6 @@ def is_logged_in(driver):
 			print("Successfully logged in !")
 			return True
 
-		print("Have not logged in.Please wait...")
 		return False
 	except:
 		print("Unexpected error occured while checking login status")
@@ -85,41 +84,52 @@ def join_meeting(driver,room_link, meeting_id, meeting_pwd):
 	else:
 		zoom_meeting_id = meeting_id
 		zoom_meeting_pwd = meeting_pwd
-	zoom_meeting_url = "https://zoom.us/wc/join/" + zoom_meeting_id
+	zoom_meeting_url = f"https://zoom.us/wc/join/{zoom_meeting_id}"
 	
-	url = f"https://zoom.us/j/{zoom_meeting_id}?pwd={zoom_meeting_pwd}"
+	driver.get("https://zoom.us/account")
+	load_cookies(driver)
+	wait_page_to_load(driver)
+
+	if( not is_logged_in(driver)):
+		print("Have not logged in.Please wait...")
+		login(driver)
+
+	driver.get(zoom_meeting_url)
+	wait_page_to_load(driver)
+	
+	print("Finding name to insert to zoom meeting...")
+	name_input_box = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("inputname"))
+	name_join_button = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("joinBtn"))
+	if(name_input_box[0].get_attribute('value') == ""):
+		name = "Zoom PlusPlus"
+		name_input_box[0].send_keys(name)
+	print("Found the button")
+	name_join_button[0].click()
+	print("Click name join button")
+
+	wait_page_to_load(driver)
 
 	try:
-		driver.get("https://zoom.us/account")
-		load_cookies(driver)
-		wait_page_to_load(driver)
-
-		if( not is_logged_in(driver)):
-			login(driver)
-
-		driver.get(zoom_meeting_url)
-		wait_page_to_load(driver)
-		# TODO: MEETING HAS NOT STARTED ERROR 
-		
-		# Input the name to zoom meeting 
-		name_input_box = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("inputname"))
-		name_join_button = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("joinBtn"))
-		if(name_input_box[0].get_attribute('value') == ""):
-			name = input("Please Input your name here and press <enter> : ")
-			name_input_box[0].send_keys(name)
-		name_join_button[0].click()
-
-		wait_page_to_load(driver)
-
-		# Input zoom meeting pwd
+		print("Finding password to input to zoom meeting..")
 		pwd_input_box = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("inputpasscode"))
 		pwd_join_button = WebDriverWait(driver,15).until(lambda x: x.find_elements_by_id("joinBtn"))
+		print("Found the button")
 		pwd_input_box[0].send_keys(meeting_pwd)
 		pwd_join_button[0].click()
-
-	except KeyboardInterrupt:
-		raise Exception("Keyboard Interrupt")
+		print("Click password join button")
 	except:
-		traceback.print_exc(file=sys.stdout)
-	finally:
-		save_cookies(driver)
+		print("Could not find password")
+		# TODO: UI should do something if meeting has not started
+		try:
+			print("Check if meeting has not started")
+			meeting_status = driver.find_element_by_id("prompt")
+			meeting_status = meeting_status.find_element_by_tag_name("h4")
+			meeting_status = meeting_status.get_attribute("innerHTML")
+			print(f"Meeting status: {meeting_status}")
+			return False
+		except:
+			print("No password")
+			pass
+	
+	save_cookies(driver)
+	return True
