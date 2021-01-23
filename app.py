@@ -1,6 +1,6 @@
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QObject, QThread
 from PyQt5 import QtCore, QtGui, QtWidgets
-from waitingspinnerwidget import QtWaitingSpinner
+# from waitingspinnerwidget import QtWaitingSpinner
 import threading
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QMessageBox, QDialog, QPushButton
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QMessageBox, QDialog, QTabWidget, QTableWidgetItem, QHeaderView
@@ -116,7 +116,7 @@ class loginWindow(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.main = uic.loadUi("./UI/main_window.ui")
+        self.main = uic.loadUi("./UI/xml/main_window.ui")
         self.table_student_attention = self.main.tableWidget_attention
         self.table_hands = self.main.tableWidget_hands
         self.main.pushButton_test.clicked.connect(lambda: print("testing"))
