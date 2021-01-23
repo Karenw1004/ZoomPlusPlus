@@ -8,9 +8,7 @@ from PyQt5.QtCore import pyqtSignal, QCoreApplication
 from PyQt5 import uic
 import sys
 from host import ZoomBackend
-<< << << < HEAD
-== == == =
->>>>>> > c1f35910a1a7c01828d93d6a0fcf9346f25c4f54
+
 
 
 # Step 1: Create a worker class
@@ -111,6 +109,8 @@ class loginWindow(QDialog):
     def openMainWindow(self):
         self.mainWindow.main.show()
         self.login.hide()
+        self.createAttentionTable(10, 2, [])
+        self.createHandsTable(10, 1, [])
 
 
 class MainWindow(QMainWindow):
