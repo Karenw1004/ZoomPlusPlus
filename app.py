@@ -109,8 +109,8 @@ class loginWindow(QDialog):
     def openMainWindow(self):
         self.mainWindow.main.show()
         self.login.hide()
-        self.createAttentionTable(10, 2, [])
-        self.createHandsTable(10, 1, [])
+        self.mainWindow.createAttentionTable(10, 2, [])
+        self.mainWindow.createHandsTable(10, 1, [])
 
 
 class MainWindow(QMainWindow):
