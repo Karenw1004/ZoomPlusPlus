@@ -3,17 +3,17 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # from waitingspinnerwidget import QtWaitingSpinner
 import threading
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QMessageBox, QDialog, QPushButton
-from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QMessageBox, QDialog, QTabWidget, QTableWidgetItem, QHeaderView
+from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QMessageBox, QDialog, QTabWidget, \
+    QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import pyqtSignal, QCoreApplication
 from PyQt5 import uic
 import sys
 from host import ZoomBackend
-
+import time
 
 
 # Step 1: Create a worker class
 class Worker(QThread):
-
     finished = pyqtSignal()
 
     def __init__(self, id, pwd, url, parent=None):
@@ -60,7 +60,7 @@ class loginWindow(QDialog):
         self.meetingId = None
         self.password = None
         self.url = None
-        self.mainWindow = MainWindow()
+        self.mainWindow = None
 
         # self.pushButton_login = QPushButton("Join Meeting")
         # self.spinner = QtWaitingSpinner(self, disableParentWhenSpinning=True)
@@ -96,7 +96,6 @@ class loginWindow(QDialog):
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
-
         # Final resets
         self.pushButton_login.setEnabled(False)
         self.thread.finished.connect(lambda: self.openMainWindow())
@@ -107,21 +106,56 @@ class loginWindow(QDialog):
         # web_thread.join()
 
     def openMainWindow(self):
+        self.mainWindow = MainWindow(backend)
         self.mainWindow.main.show()
         self.login.hide()
-        self.mainWindow.createAttentionTable(10, 2, [])
-        self.mainWindow.createHandsTable(10, 1, [])
+        # self.mainWindow.createAttentionTable(10, 2, [])
+        # self.mainWindow.createHandsTable(10, 1, [])
+        # backend.get_participants_list()
+        self.mainWindow.main.pushButton_test.clicked.connect(lambda:
+                                                             self.mainWindow.createAttentionTable(10, 2,
+                                                                                                  backend.get_participants_list()))
+
+
+class HandsTableThread(QThread):
+    trigger = pyqtSignal([])
+
+    def __init__(self, table, backend):
+        super().__init__()
+        self.hands_list = []
+        self.table = table
+
+    def run(self):
+        while 1:
+            time.sleep(5)
+            # self.hands_list = backend.get_current_reaction_list(None, None)
+            # clear table
+            self.table.clear()
+            if self.hands_list:
+                # set row
+                self.table.setRowCount(len(self.hands_list))
+                # set col = 1
+                self.table.setColumnCount(1)
+                self.table.setHorizontalHeaderLabels(["Raised hand students"])
+                for i in range(len(self.hands_list)):
+                    self.table.setItem(i, 0, QTableWidgetItem(self.hands_list[i]))
+                self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            else:
+                print("No raised hand")
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, backend):
         super().__init__()
         self.main = uic.loadUi("./UI/xml/main_window.ui")
         self.table_student_attention = self.main.tableWidget_attention
         self.table_hands = self.main.tableWidget_hands
-        self.main.pushButton_test.clicked.connect(lambda: print("testing"))
+        self.hands_table_thread = HandsTableThread(self.table_hands,backend)
+        self.hands_table_thread.start()
 
     def createAttentionTable(self, row, col, lst):
+        # clear table
+        self.table_student_attention.clear()
         # set row which is the number of students
         self.table_student_attention.setRowCount(row)
         # set col should be 2
@@ -130,11 +164,18 @@ class MainWindow(QMainWindow):
         self.table_student_attention.setHorizontalHeaderLabels(
             ['Name', 'Attention(%)'])
         # set everything in the lst, but I don't have list right now
-        for i in range(row):
-            self.table_student_attention.setItem(
-                i, 0, QTableWidgetItem("cell"+str(i)))
-            self.table_student_attention.setItem(
-                i, 1, QTableWidgetItem("cell"+str(i+1)))
+        if not lst:
+            for i in range(row):
+                self.table_student_attention.setItem(
+                    i, 0, QTableWidgetItem("cell" + str(i)))
+                self.table_student_attention.setItem(
+                    i, 1, QTableWidgetItem("cell" + str(i + 1)))
+        else:
+            for i in range(len(lst)):
+                self.table_student_attention.setItem(i, 0, QTableWidgetItem(lst[i]))
+                self.table_student_attention.setItem(
+                    i, 1, QTableWidgetItem("No attention"))
+
         self.table_student_attention.horizontalHeader(
         ).setSectionResizeMode(QHeaderView.Stretch)
 
@@ -145,7 +186,7 @@ class MainWindow(QMainWindow):
         self.table_hands.setColumnCount(col)
         self.table_hands.setHorizontalHeaderLabels(["Raised hand students"])
         for i in range(row):
-            self.table_hands.setItem(i, 0, QTableWidgetItem("student"+str(i)))
+            self.table_hands.setItem(i, 0, QTableWidgetItem("student" + str(i)))
         self.table_hands.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
 
@@ -159,6 +200,7 @@ def linkFunc(id, pwd, url):
 
     print("URL is ", url)
     headless = False
+    global backend
     backend = ZoomBackend(headless)
     # declare webdriver to store chrome driver
     global webdriver
