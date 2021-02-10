@@ -120,9 +120,10 @@ class loginWindow(QDialog):
 class HandsTableThread(QThread):
     trigger = pyqtSignal([])
 
-    def __init__(self, table, backend):
+    def __init__(self, table, backend, hand_num):
         super().__init__()
         self.hands_list = []
+        self.hand_num = hand_num
         self.table = table
 
     def run(self):
@@ -131,9 +132,13 @@ class HandsTableThread(QThread):
             # self.hands_list = backend.get_current_reaction_list(None, None)
             # clear table
             self.table.clear()
+            # updata label
             if self.hands_list:
+                row = len(self.hands_list)
+                # updata label
+                self.hand_num.setText(str(row))
                 # set row
-                self.table.setRowCount(len(self.hands_list))
+                self.table.setRowCount(row)
                 # set col = 1
                 self.table.setColumnCount(1)
                 self.table.setHorizontalHeaderLabels(["Raised hand students"])
@@ -150,12 +155,16 @@ class MainWindow(QMainWindow):
         self.main = uic.loadUi("./UI/xml/main_window.ui")
         self.table_student_attention = self.main.tableWidget_attention
         self.table_hands = self.main.tableWidget_hands
-        self.hands_table_thread = HandsTableThread(self.table_hands,backend)
+        self.num_student = self.main.label_student_number
+        self.raised_hand = self.main.label_raised_hand_number
+        self.hands_table_thread = HandsTableThread(self.table_hands, backend, self.raised_hand)
         self.hands_table_thread.start()
 
     def createAttentionTable(self, row, col, lst):
         # clear table
         self.table_student_attention.clear()
+        # update student number label
+        self.num_student.setText(str(len(lst)))
         # set row which is the number of students
         self.table_student_attention.setRowCount(row)
         # set col should be 2
