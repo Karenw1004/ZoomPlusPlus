@@ -10,6 +10,7 @@ class ZoomBackend(ZoomBottomMenu, ZoomVideo):
 	def __init__(self, headless):
 		self.driver = self.init_driver(headless)
 		super().__init__(self.driver)
+		self.raised_hands_list = []
 
 	def init_driver(self, headless):
 		options = Options()
@@ -38,7 +39,9 @@ class ZoomBackend(ZoomBottomMenu, ZoomVideo):
 		print("\nZoomPlusPlus Backend (Host)\n")
 		if join_meeting(self.driver, url, meeting_id, meeting_pwd):
 			super().get_participants_list()
-			super().call_next_person("raise_hands")
+			self.raised_hands_list = super().get_curr_reaction_list("raise_hands",self.raised_hands_list)
+			next_person , self.raised_hand_list = super().get_next_person_with_reaction(self.raised_hands_list)
+			super().send_message_next_person(next_person)
 			super().get_pictures()
 			return self.driver
 		else:
