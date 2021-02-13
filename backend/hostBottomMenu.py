@@ -79,7 +79,7 @@ class ZoomBottomMenu:
         print(f"Reaction {reaction} list is {curr_list}")
         return curr_list
 
-    def get_reaction_count(self,reaction):
+    def get_reaction_count(self):
         return self.reaction_count
     
     def get_next_person_with_reaction(self, reaction):

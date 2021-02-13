@@ -130,6 +130,18 @@ def join_meeting(driver,room_link, meeting_id, meeting_pwd):
 		except:
 			print("No password")
 			pass
+
+	wait_page_to_load(driver)
+	
+	found_button = False
+	print("Find and click join audio button")
+	while not found_button: 
+		try: 
+			join_audio_button = driver.find_element_by_xpath("//button[@class='zm-btn join-dialog__close zm-btn--default zm-btn__outline--blue']")
+			join_audio_button.click() 
+			found_button = True 
+		except: 
+			sleep(1) 
 	
 	save_cookies(driver)
 	return True
