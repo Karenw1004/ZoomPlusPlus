@@ -101,9 +101,6 @@ class loginWindow(QDialog):
         self.thread.finished.connect(lambda: self.openMainWindow())
 
         print("after open main")
-        # web_thread = threading.Thread(target=linkFunc(self.meetingId, self.password, self.url))
-        # web_thread.start()
-        # web_thread.join()
 
     def openMainWindow(self):
         self.mainWindow = MainWindow(backend)
@@ -112,53 +109,57 @@ class loginWindow(QDialog):
         # self.mainWindow.createAttentionTable(10, 2, [])
         # self.mainWindow.createHandsTable(10, 1, [])
         # backend.get_participants_list()
+        self.mainWindow.main.pushButton_next_question.clicked.connect(self.mainWindow.clear_hands_list)
+        self.mainWindow.main.pushButton_next_student.clicked.connect(self.mainWindow.pop_hands_list)
         self.mainWindow.main.pushButton_test.clicked.connect(lambda:
                                                              self.mainWindow.createAttentionTable(10, 2,
                                                                                                   backend.get_participants_list()))
 
 
 class HandsTableThread(QThread):
-    trigger = pyqtSignal([])
+    return_list_signal = pyqtSignal(list)
 
-    def __init__(self, table, backend, hand_num):
+    def __init__(self, lst):
         super().__init__()
-        self.hands_list = []
-        self.hand_num = hand_num
-        self.table = table
+        self.hands_list = lst
 
     def run(self):
         while 1:
-            time.sleep(5)
-            # self.hands_list = backend.get_current_reaction_list(None, None)
-            # clear table
-            self.table.clear()
-            # updata label
+            self.sleep(3)
+            self.hands_list = backend.get_curr_reaction_list("raise_hands", self.hands_list)
             if self.hands_list:
-                row = len(self.hands_list)
-                # updata label
-                self.hand_num.setText(str(row))
-                # set row
-                self.table.setRowCount(row)
-                # set col = 1
-                self.table.setColumnCount(1)
-                self.table.setHorizontalHeaderLabels(["Raised hand students"])
-                for i in range(len(self.hands_list)):
-                    self.table.setItem(i, 0, QTableWidgetItem(self.hands_list[i]))
-                self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+                self.return_list_signal.emit(self.hands_list)
             else:
-                print("No raised hand")
+                print("No raised hand from thread")
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, backend):
+    def __init__(self, backend_):
         super().__init__()
         self.main = uic.loadUi("./UI/xml/main_window.ui")
         self.table_student_attention = self.main.tableWidget_attention
         self.table_hands = self.main.tableWidget_hands
         self.num_student = self.main.label_student_number
-        self.raised_hand = self.main.label_raised_hand_number
-        self.hands_table_thread = HandsTableThread(self.table_hands, backend, self.raised_hand)
+        self.raised_hand_lbl = self.main.label_raised_hand_number
+        self.first_student_lbl = self.main.label_first_student
+        self.hands_list = []
+        self.hands_table_thread = HandsTableThread(self.hands_list)
+        self.hands_table_thread.return_list_signal.connect(self.createHandsTable)
         self.hands_table_thread.start()
+
+    def pop_hands_list(self):
+        if self.hands_list:
+            next_person = self.hands_list.pop()
+            self.first_student_lbl.setText(next_person)
+        self.createHandsTable(self.hands_list)
+        print("call pop")
+
+    def clear_hands_list(self):
+        self.first_student_lbl.setText('None')
+        if self.hands_list:
+            self.hands_list.clear()
+        self.createHandsTable(self.hands_list)
+        print("call clear")
 
     def createAttentionTable(self, row, col, lst):
         # clear table
@@ -188,15 +189,24 @@ class MainWindow(QMainWindow):
         self.table_student_attention.horizontalHeader(
         ).setSectionResizeMode(QHeaderView.Stretch)
 
-    def createHandsTable(self, row, col, lst):
-        # set row
-        self.table_hands.setRowCount(row)
-        # set col should be 1
-        self.table_hands.setColumnCount(col)
-        self.table_hands.setHorizontalHeaderLabels(["Raised hand students"])
-        for i in range(row):
-            self.table_hands.setItem(i, 0, QTableWidgetItem("student" + str(i)))
-        self.table_hands.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+    def createHandsTable(self, lst):
+        self.table_hands.clear()
+        # updata label
+        if lst:
+            row = len(lst)
+            # updata label
+            self.raised_hand_lbl.setText(str(row))
+            # set row
+            self.table_hands.setRowCount(row)
+            # set col = 1
+            self.table_hands.setColumnCount(1)
+            self.table_hands.setHorizontalHeaderLabels(["Raised hand students"])
+            for i in range(row):
+                self.table_hands.setItem(i, 0, QTableWidgetItem(lst[i]))
+            self.table_hands.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        else:
+            self.raised_hand_lbl.setText('0')
+            print("No raised hand")
 
 
 def linkFunc(id, pwd, url):

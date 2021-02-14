@@ -27,7 +27,7 @@
            </font>
           </property>
           <property name="text">
-           <string>First Hand:</string>
+           <string>Next student:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -50,13 +50,6 @@
          </widget>
         </item>
        </layout>
-      </item>
-      <item>
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -93,13 +86,6 @@
        </layout>
       </item>
       <item>
-       <widget class="Line" name="line_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QTableWidget" name="tableWidget_hands">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -111,6 +97,24 @@
          <enum>QAbstractScrollArea::AdjustToContents</enum>
         </property>
        </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="pushButton_next_student">
+          <property name="text">
+           <string>Next student</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_next_question">
+          <property name="text">
+           <string>Next question</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="Line" name="line_3">
@@ -176,13 +180,6 @@
         <attribute name="verticalHeaderStretchLastSection">
          <bool>true</bool>
         </attribute>
-       </widget>
-      </item>
-      <item>
-       <widget class="Line" name="line_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
        </widget>
       </item>
       <item>
