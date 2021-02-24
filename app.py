@@ -18,6 +18,7 @@ import re
 import threading
 import queue
 from speech_to_text.speech_to_text import transcribe
+from UI.PyQtLoadingButton import PyQtLoadingButton
 
 def ceil(a, b):
     return -(-a // b)
@@ -54,33 +55,6 @@ class Worker(QThread):
         linkFunc(self.meetingId, self.password, self.url)
         self.finished.emit()
 
-
-class LoadingButton(QPushButton):
-    # @QtCore.pyqtSlot()
-    def start(self):
-        if hasattr(self, "_movie"):
-            self._movie.start()
-
-    # @QtCore.pyqtSlot()
-    def stop(self):
-        if hasattr(self, "_movie"):
-            self._movie.stop()
-            self.setIcon(QtGui.QIcon())
-
-    def setGif(self, filename):
-        if not hasattr(self, "_movie"):
-            self._movie = QtGui.QMovie(self)
-            self._movie.setFileName(filename)
-            self._movie.frameChanged.connect(self.on_frameChanged)
-            if self._movie.loopCount() != -1:
-                self._movie.finished.connect(self.start)
-        self.stop()
-
-    @QtCore.pyqtSlot(int)
-    def on_frameChanged(self, frameNumber):
-        self.setIcon(QtGui.QIcon(self._movie.currentPixmap()))
-
-
 class loginWindow(QDialog):
     def __init__(self, q):
         super().__init__()
@@ -95,7 +69,7 @@ class loginWindow(QDialog):
         # self.login.gridLayout.addWidget(self.pushButton_login)
         # self.login.gridLayout.addWidget(self.spinner)
 
-        self.pushButton_login = LoadingButton("Join Meeting")
+        self.pushButton_login = PyQtLoadingButton("Join Meeting")
         self.pushButton_login.setGif("./UI/images/loading.gif")
 
         self.login.gridLayout.addWidget(self.pushButton_login)
