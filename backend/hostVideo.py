@@ -33,36 +33,4 @@ class ZoomVideo:
                 sleep(1)
 
         sleep(5) # wait for the gallery_square to load
-        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-        eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "./haarcascade_eye.xml")
-
-        while True:
-            image = self.driver.find_element_by_class_name("gallery-video-container__main-view").screenshot_as_png
-            imageStream = io.BytesIO(image)
-            im = Image.open(imageStream)
-            img = cv2.cvtColor(numpy.array(im), cv2.COLOR_RGB2BGR)
-            # im.save("img2.png")
-            print("success")
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            faces = face_cascade.detectMultiScale(gray, 1.06, 5)
-            # print(faces)
-            for (x,y,w,h) in faces:
-                roi_gray = gray[y:y+h, x:x+w]
-                roi_color = img[y:y+h, x:x+w]
-                # print(x, y, w, h)
-                eyes = eye_cascade.detectMultiScale(roi_gray, 1.1, 5)
-                if len(eyes)==0:
-                    font = cv2.FONT_HERSHEY_SIMPLEX
-                    cv2.putText(img, 'Not Attentive', (x,y-10), font, 0.5, (0,0,255), 1, cv2.LINE_AA)
-                    img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),2)
-                else:
-                    font = cv2.FONT_HERSHEY_SIMPLEX
-                    cv2.putText(img, 'Attentive', (x,y-10), font, 0.5, (0,255,0), 1, cv2.LINE_AA)
-                    img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
-                for (ex,ey,ew,eh) in eyes:
-                    # print(eyes)
-                    cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(255,0,111),2)
-                
-            cv2.imshow('face_feed',img)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+        
