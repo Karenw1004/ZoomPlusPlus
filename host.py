@@ -15,9 +15,10 @@ class ZoomBackend(ZoomBottomMenu, ZoomVideo):
 	def init_driver(self, headless):
 		options = Options()
 		options.headless = headless
-		# Extensions to solve ReCaptcha
-		options.add_extension("./extension/Captcha.crx")
-		options.add_extension("./extension/CORSon.crx")
+		# if not options.headless:
+		# 	# Extensions to solve ReCaptcha
+		# 	options.add_extension("./extension/Captcha.crx")
+		# 	options.add_extension("./extension/CORSon.crx")
 		# List of options to avoid reCaptcha
 		options.add_argument("start-maximized")
 		options.add_argument('--profile-directory=profile')
@@ -38,11 +39,12 @@ class ZoomBackend(ZoomBottomMenu, ZoomVideo):
 	def start_driver(self,url, meeting_id, meeting_pwd):
 		print("\nZoomPlusPlus Backend (Host)\n")
 		if join_meeting(self.driver, url, meeting_id, meeting_pwd):
-			super().get_participants_list()
-			self.raised_hands_list = super().get_curr_reaction_list("raise_hands",self.raised_hands_list)
-			next_person , self.raised_hand_list = super().get_next_person_with_reaction(self.raised_hands_list)
-			super().send_message_next_person(next_person)
-			super().get_pictures()
+			# super().get_participants_list()
+			# self.raised_hands_list = super().get_curr_reaction_list("raise_hands",self.raised_hands_list)
+			# next_person , self.raised_hand_list = super().get_next_person_with_reaction(self.raised_hands_list)
+			# super().send_message_next_person(next_person)
+			# super().get_pictures()
+			print("RETURN DRIVER")
 			return self.driver
 		else:
 			print("Failed to start driver")
@@ -50,6 +52,6 @@ class ZoomBackend(ZoomBottomMenu, ZoomVideo):
 
 if __name__ == '__main__':
 	backend = ZoomBackend(False)
-	meeting_id = "" # Enter meeting id
-	meeting_pwd = "" # Enter meeting pwd
+	meeting_id = "9323412234" # Enter meeting id
+	meeting_pwd = "1" # Enter meeting pwd
 	backend.start_driver(None,meeting_id,meeting_pwd)
