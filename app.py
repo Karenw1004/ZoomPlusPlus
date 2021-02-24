@@ -1,15 +1,43 @@
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QObject, QThread
 from PyQt5 import QtCore, QtGui, QtWidgets
-# from waitingspinnerwidget import QtWaitingSpinner
 import threading
-from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QMessageBox, QDialog, QPushButton
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QMessageBox, QDialog, QTabWidget, \
-    QTableWidgetItem, QHeaderView
-from PyQt5.QtCore import pyqtSignal, QCoreApplication
+    QTableWidgetItem, QHeaderView, QPushButton
+from PyQt5.QtCore import pyqtSignal, QCoreApplication, pyqtSlot
 from PyQt5 import uic
+from PyQt5.QtGui import QPixmap
 import sys
 from host import ZoomBackend
-import time
+from backend.hostVideo import ZoomVideo
+from time import sleep
+import io
+from PIL import Image
+import cv2
+import numpy as np
+import re
+import threading
+import queue
+from speech_to_text.speech_to_text import transcribe
+
+def ceil(a, b):
+    return -(-a // b)
+
+def show_captions(img, text, max_characters_per_line=40):
+    height, width = img.shape[:2]
+    
+    fontface = cv2.FONT_HERSHEY_DUPLEX
+    fontscale = 0.7
+    fontcolor = (0, 0, 255)
+
+    number_of_lines = ceil(len(text), max_characters_per_line)
+    # max_number_of_lines = 4
+    
+    for line in range(number_of_lines):
+        line_text = text[max_characters_per_line*line: max_characters_per_line*line+max_characters_per_line]
+        textSize = cv2.getTextSize(line_text, fontFace=fontface, fontScale=fontscale, thickness=1)
+        center_displacement = np.array([int((width-textSize[0][0])/2)+textSize[0][0], (textSize[0][1]*2*(number_of_lines - line))])
+        cv2.putText(img, line_text, (width-center_displacement[0],height-center_displacement[1]), fontface, fontscale, fontcolor, thickness=1)
+    return img
 
 
 # Step 1: Create a worker class
@@ -54,7 +82,7 @@ class LoadingButton(QPushButton):
 
 
 class loginWindow(QDialog):
-    def __init__(self):
+    def __init__(self, q):
         super().__init__()
         self.login = uic.loadUi("./UI/xml/login_window.ui")
         self.meetingId = None
@@ -71,17 +99,19 @@ class loginWindow(QDialog):
         self.pushButton_login.setGif("./UI/images/loading.gif")
 
         self.login.gridLayout.addWidget(self.pushButton_login)
-        self.pushButton_login.clicked.connect(self.runLinkFunc)
+        self.pushButton_login.clicked.connect(lambda: self.runLinkFunc(q))
+
 
     def getInfo(self):
-        self.meetingId = self.login.lineEdit_meeting_id.text()
+        log = self.login.lineEdit_meeting_id.text().replace(" ", "")
+        self.meetingId = log
         self.password = self.login.lineEdit_password.text()
         self.url = self.login.lineEdit_url.text()
         print(f"MeetingId: {self.meetingId}")
         print(f"password: {self.password}")
         print(f"url: {self.url}")
 
-    def runLinkFunc(self):
+    def runLinkFunc(self,q):
         self.pushButton_login.start()
 
         # self.spinner.start()
@@ -98,14 +128,17 @@ class loginWindow(QDialog):
         self.thread.start()
         # Final resets
         self.pushButton_login.setEnabled(False)
-        self.thread.finished.connect(lambda: self.openMainWindow())
+        print("runLinkFUnc openMainWindow")
+        self.thread.finished.connect(lambda: self.openMainWindow(q))
 
         print("after open main")
 
-    def openMainWindow(self):
+    def openMainWindow(self, q):
+        self.login.hide()
+        change_pixmap_signal = pyqtSignal(np.ndarray)
+
         self.mainWindow = MainWindow(backend)
         self.mainWindow.main.show()
-        self.login.hide()
         # self.mainWindow.createAttentionTable(10, 2, [])
         # self.mainWindow.createHandsTable(10, 1, [])
         # backend.get_participants_list()
@@ -115,6 +148,45 @@ class loginWindow(QDialog):
                                                              self.mainWindow.createAttentionTable(10, 2,
                                                                                                   backend.get_participants_list()))
 
+        vv = ZoomVideo(webdriver)
+        vv.get_pictures()
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "./haarcascade_eye.xml")
+        transcript = ""
+        while True:
+            image = webdriver.find_element_by_class_name("gallery-video-container__main-view").screenshot_as_png
+            imageStream = io.BytesIO(image)
+            im = Image.open(imageStream)
+            img = cv2.cvtColor(np.array(im), cv2.COLOR_RGB2BGR)
+            # im.save("img2.png")
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray, 1.06, 5)
+            # print(faces)
+            for (x,y,w,h) in faces:
+                roi_gray = gray[y:y+h, x:x+w]
+                roi_color = img[y:y+h, x:x+w]
+                # print(x, y, w, h)
+                eyes = eye_cascade.detectMultiScale(roi_gray, 1.1, 5)
+                if len(eyes)==0:
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    cv2.putText(img, 'Not Attentive', (x,y-10), font, 0.5, (0,0,255), 1, cv2.LINE_AA)
+                    img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),2)
+                else:
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    cv2.putText(img, 'Attentive', (x,y-10), font, 0.5, (0,255,0), 1, cv2.LINE_AA)
+                    img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
+                for (ex,ey,ew,eh) in eyes:
+                    # print(eyes)
+                    cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(255,0,111),2)
+
+            if not q.empty():
+                transcript = q.get()
+
+            img = show_captions(img, transcript)
+
+            cv2.imshow('face_feed',img)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
 class HandsTableThread(QThread):
     return_list_signal = pyqtSignal(list)
@@ -146,6 +218,22 @@ class MainWindow(QMainWindow):
         self.hands_table_thread = HandsTableThread(self.hands_list)
         self.hands_table_thread.return_list_signal.connect(self.createHandsTable)
         self.hands_table_thread.start()
+        self.main.pushButton_test.clicked.connect(lambda: print("Test"))
+
+    @pyqtSlot(np.ndarray)
+    def update_image(self, img):
+        """Updates the image_label with a new opencv image"""
+        qt_img = self.convert_cv_qt(img)
+        self.main.caption_feed.setPixmap(qt_img)
+    
+    def convert_cv_qt(self, cv_img):
+        """Convert from an opencv image to QPixmap"""
+        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_image.shape
+        bytes_per_line = ch * w
+        convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
+        p = convert_to_Qt_format.scaled(self.disply_width, self.display_height, Qt.KeepAspectRatio)
+        return QPixmap.fromImage(p)
 
     def pop_hands_list(self):
         if self.hands_list:
@@ -210,15 +298,7 @@ class MainWindow(QMainWindow):
 
 
 def linkFunc(id, pwd, url):
-    # get selenium data collector going
-    # set launch options
-    # room_link = linkInputVal.get()
-
-    # if not url:
-    #     url = id + " " + pwd
-
-    print("URL is ", url)
-    headless = False
+    headless = True
     global backend
     backend = ZoomBackend(headless)
     # declare webdriver to store chrome driver
@@ -229,7 +309,14 @@ def linkFunc(id, pwd, url):
 
 
 if __name__ == '__main__':
+    transcript = ""
+    q = queue.Queue()
+    t1= threading.Thread(target = transcribe, args=(transcript, q))
+
+    t1.daemon = True
+    t1.start() 
+
     app = QApplication(sys.argv)
-    login = loginWindow()
+    login = loginWindow(q)
     login.login.show()
     sys.exit(app.exec_())
