@@ -28,7 +28,7 @@ def show_captions(img, text, max_characters_per_line=40):
     
     fontface = cv2.FONT_HERSHEY_DUPLEX
     fontscale = 0.7
-    fontcolor = (0, 0, 255)
+    fontcolor = (255, 255, 255)
 
     number_of_lines = ceil(len(text), max_characters_per_line)
     # max_number_of_lines = 4
@@ -37,6 +37,7 @@ def show_captions(img, text, max_characters_per_line=40):
         line_text = text[max_characters_per_line*line: max_characters_per_line*line+max_characters_per_line]
         textSize = cv2.getTextSize(line_text, fontFace=fontface, fontScale=fontscale, thickness=1)
         center_displacement = np.array([int((width-textSize[0][0])/2)+textSize[0][0], (textSize[0][1]*2*(number_of_lines - line))])
+        img = cv2.rectangle(img, (width-center_displacement[0],height-textSize[0][1]-center_displacement[1]), (width-center_displacement[0]+textSize[0][0], height-center_displacement[1]+7), (0, 0, 0), -1) 
         cv2.putText(img, line_text, (width-center_displacement[0],height-center_displacement[1]), fontface, fontscale, fontcolor, thickness=1)
     return img
 
@@ -272,7 +273,7 @@ class MainWindow(QMainWindow):
 
 
 def linkFunc(id, pwd, url):
-    headless = True
+    headless = False
     global backend
     backend = ZoomBackend(headless)
     # declare webdriver to store chrome driver

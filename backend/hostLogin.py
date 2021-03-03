@@ -199,11 +199,12 @@ def join_meeting(driver,room_link, meeting_id, meeting_pwd):
 	wait_page_to_load(driver)
 	sleep(3)
 	found_button = False
-	print("Find and click join audio button")
+	print("Find join audio button...")
 	while not found_button: 
 		try: 
-			join_audio_button = driver.find_element_by_xpath("//button[@class='zm-btn join-dialog__close zm-btn--default zm-btn__outline--blue']")
+			join_audio_button = driver.find_element_by_xpath("//button[@class='zm-btn join-audio-by-voip__join-btn zm-btn--primary zm-btn__outline--white zm-btn--lg']")
 			join_audio_button.click() 
+			print("Clicked join audio button")
 			found_button = True 
 		except: 
 			sleep(1) 
@@ -219,7 +220,7 @@ def click_i_m_not_robot(driver):
 	data_sitekeys = findall('data-sitekey="(.*?)"', page_source)
 	if data_sitekeys:
 		data_sitekey = data_sitekeys[0]
-		print("Multiple data sitekey selected the ffirst one")
+		print("Multiple data sitekey selected the first one")
 	else:
 		elments = driver.find_elements_by_xpath('//iframe[contains(@role,"presentation")]')
 		print("in ifrmae")
@@ -234,13 +235,16 @@ def click_i_m_not_robot(driver):
 			print("Did not find iframe")
 
 	if data_sitekey is not None:
+		print("Datakey is not none")
+		print(f"Datakey {data_sitekey}")
 		solver = TwoCaptcha(API_KEY)
-		sucess_id = solver.recaptcha(data_sitekey, url)
-
+		print("Solving captcha...")
+		success_id = solver.recaptcha(data_sitekey, url)
+		print("Solved...\nSending Captcha")
 		driver.execute_script('document.querySelector(".g-recaptcha-response").style.display="block";')
 		sleep(5)
-		driver.execute_script('document.querySelector(".g-recaptcha-response").innerText="%s";' % sucess_id["code"])
-
+		driver.execute_script('document.querySelector(".g-recaptcha-response").innerText="%s";' % success_id["code"])
+		print("Sent!")
 		sleep(3)
 		if driver.find_elements_by_xpath('//div[@data-callback]'):
 			data_callback = driver.find_element_by_xpath('//div[@data-callback]').get_attribute('data-callback')
