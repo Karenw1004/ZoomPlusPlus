@@ -37,7 +37,8 @@ def islooking(thresh):
         return False
 
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('shape_68.dat')
+predictor = dlib.shape_predictor("https://github.com/r883l717/581ET/raw/master/shape_68.dat")
+#predictor = dlib.shape_predictor('shape_68.dat')
 
 left = [36, 37, 38, 39, 40, 41]
 right = [42, 43, 44, 45, 46, 47]
